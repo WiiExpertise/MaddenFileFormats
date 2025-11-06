@@ -1,0 +1,131 @@
+//------------------------------------------------
+//--- 010 Editor v14.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+local uint META_SIZE = 0x10;
+local uint BUNDLE_COUNT = 0;
+
+struct RES_HEADER {
+    uint relocTableOffset;
+    uint relocTableSize;
+    FSeek(FTell() + 8); // Padding
+};
+
+
+struct BRT_HEADER {
+    uint64 brtNameOffset;
+    local uint curPos = FTell();
+    FSeek(META_SIZE + brtNameOffset);
+    string brtName;
+    FSeek(curPos);
+    
+    uint64 assetLookupsPtr;
+    uint64 bundleRefsPtr;
+    uint64 assetsPtr;
+    uint64 bundlesPtr;
+    
+    uint64 emptyStringPtr;
+    
+    GUID primaryInstanceGuid;
+    
+    FSeek(FTell() + 16);
+    
+    uint assetLookupCount;
+    uint bundleRefCount;
+    uint assetCount;
+    local uint bundleCount = 0;
+    
+    uint unkZero;
+    uint unkHash;
+    uint unkZero2;
+    uint unkOne;
+    uint unkZero3;
+};
+
+struct BundleRef {
+    uint64 namePtr;
+    
+    local uint curPos = FTell();
+    FSeek(META_SIZE + namePtr);
+    string name;
+    FSeek(curPos);
+    
+    uint64 directoryPtr;
+    curPos = FTell();
+    FSeek(META_SIZE + directoryPtr);
+    string directory;
+    FSeek(curPos);
+    
+    uint64 bundlePtr;
+    
+};
+
+struct Asset {
+    uint64 namePtr;
+    
+    local uint curPos = FTell();
+    FSeek(META_SIZE + namePtr);
+    string name;
+    FSeek(curPos);
+    
+    uint64 directoryPtr;
+    curPos = FTell();
+    FSeek(META_SIZE + directoryPtr);
+    string directory;
+    FSeek(curPos);
+
+};
+
+struct AssetLookup {
+    uint64 hash;
+    uint bundleRefIndex;
+    uint assetIndex;
+};
+
+struct Bundle {
+    uint64 namePtr;
+    
+    local uint curPos = FTell();
+    FSeek(META_SIZE + namePtr);
+    string name;
+    FSeek(curPos);
+    
+    uint64 parentBundlePtr;
+};
+
+struct BundleRefTable {
+    RES_HEADER resHeader <bgcolor=cWhite>;
+    BRT_HEADER header <bgcolor=cRed>;
+    
+    FSeek(META_SIZE + header.bundleRefsPtr);
+    BundleRef bundleRefs[header.bundleRefCount] <optimize=false>;
+    
+    FSeek(META_SIZE + header.assetsPtr);
+    Asset assets[header.assetCount] <optimize=false>;
+    
+    FSeek(META_SIZE + header.assetLookupsPtr);
+    AssetLookup assetLookups[header.assetLookupCount] <optimize=false, bgcolor=cPurple>;
+    
+    
+    
+    while(FTell() < (resHeader.relocTableOffset + META_SIZE))
+    {
+        Bundle bundles;
+    }
+    
+    local uint relocCount = resHeader.relocTableSize / 4;
+    local uint j = 0;
+    
+    uint relocTable[relocCount];
+    
+};
+
+BundleRefTable brt <bgcolor=cAqua>;
