@@ -1,0 +1,163 @@
+//------------------------------------------------
+//--- 010 Editor v14.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+local uint ENTRY_SIZE = 0x10C8;
+local uint PLAYER_DATA_SIZE = 0xC8;
+local uint VISUALS_SIZE = 0x1000;
+local uint FIRST_NAME = 0x11;
+local uint LAST_NAME = 0x15;
+local uint HOME_TOWN = 0x1B;
+local uint ASSET_NAME = 0x2A;
+
+struct HEADER {
+    char magicString[8];
+    ushort version;
+    uint headerSize;
+    uint dataSize;
+    uint totalSize;
+    ushort gameYear;
+    ushort unknownShorts[5];
+    char fileName[21];
+    byte unknownData[7];
+    uint unkInt;
+    uint numProspects;
+};
+
+struct PLAYER_RATINGS {
+    byte overall;
+    byte acceleration;
+    byte agility;
+    byte awareness;
+    byte ballCarrierVision;
+    byte blockShedding;
+    byte breakSack;
+    byte breakTackle;
+    byte carrying;
+    byte catching;
+    byte catchInTraffic;
+    byte changeOfDirection;
+    byte finesseMoves;
+    byte hitPower;
+    byte impactBlocking;
+    byte injury;
+    byte jukeMove;
+    byte jumping;
+    
+    byte kickAccuracy;
+    byte kickPower;
+    
+    byte kickReturn;
+    byte leadBlock;
+    byte unkRating1;
+    byte manCoverage;
+    
+    byte passBlockFinesse;
+    byte passBlockPower;
+    byte passBlock;
+    
+    byte personality;
+    byte playAction;
+    byte playRecognition;
+    byte powerMoves;
+    byte pressCoverage;
+    byte pursuit;
+    byte release;
+    
+    byte shortRouteRunning;
+    byte mediumRouteRunning;
+    byte deepRouteRunning;
+    
+    byte runBlockFinesse;
+    byte runBlockPower;
+    byte runBlock;
+    byte runningStyle;
+    
+    byte spectacularCatch;
+    byte speed;
+    byte spinMove;
+    byte stamina;
+    byte stiffArm;
+    byte strength;
+    byte tackle;
+    
+    byte throwAccuracyDeep;
+    byte throwAccuracyMid;
+    byte throwAccuracy;
+    byte throwAccuracyShort;
+    byte throwOnTheRun;
+    byte throwPower;
+    byte throwUnderPressure;
+    
+    byte toughness;
+    byte trucking;
+    byte zoneCoverage;
+    byte morale;
+
+};
+
+struct PROSPECT {
+    char visualsJsonString[VISUALS_SIZE] <bgcolor=cYellow>;
+    
+    char firstName[FIRST_NAME];
+    char lastName[LAST_NAME];
+    byte homeState;
+    char homeTown[HOME_TOWN];
+    ushort college;
+    ushort birthDate;
+    byte age;
+    
+    byte heightInches;
+    ushort rawWeight;
+    
+    byte position;
+    byte archetype;
+    byte jerseyNum;
+    
+    byte draftable;
+    ushort draftPick;
+    byte draftRound;
+    
+    PLAYER_RATINGS ratings <bgcolor=cBlue>;
+    
+    byte devTrait;
+    byte characterBodyType;
+    
+    byte traitPredictability;
+    byte unkByte;
+    
+    ushort handedness;
+    ushort portraitId;
+    
+    byte qbStyle;
+    byte qbStance;
+    
+    byte unkBytes[4];
+    
+    byte visMoveType;
+    
+    byte unkByte2;
+    
+    ushort commentaryId;
+    
+    char assetName[ASSET_NAME];    
+    
+};
+
+struct DRAFT_CLASS {
+    LittleEndian();
+    
+    HEADER header <bgcolor=cWhite>;
+    
+    PROSPECT prospects[header.numProspects] <optimize=false, bgcolor=cRed>;   
+    
+
+} draft_class;
