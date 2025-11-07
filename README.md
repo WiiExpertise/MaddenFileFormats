@@ -7,7 +7,7 @@ There are two main categories of files: engine files and save files.
 ### Engine files
 Engine files have two sub-categories: real and virtual. Real files are found in the game directory as part of the real filesystem, while virtual files are found within the virtual filesystem that is built using the real files.
  
-While the real file types used tend to differ game to game, in general all games have the same virtual file types.
+While the real file types used tend to differ game to game, in general all games have the same basic virtual file types, with a wide variety of different subtypes.
 #### Real files
 - TOC
 - SB
