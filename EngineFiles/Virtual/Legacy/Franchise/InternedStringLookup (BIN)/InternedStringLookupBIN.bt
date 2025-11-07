@@ -1,0 +1,20 @@
+//------------------------------------------------
+//--- 010 Editor v14.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+struct INTERNED_STRING {
+    uint stringLength;
+    char stringData[stringLength];
+    ushort stringId;
+};
+
+ushort stringCount;
+INTERNED_STRING strings[stringCount] <optimize=false>;
