@@ -1,0 +1,73 @@
+//------------------------------------------------
+//--- 010 Editor v10.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+BitfieldDisablePadding();
+
+struct CAS_BLOCK {
+    BigEndian();
+    uint32 block_size;
+    local uint32 next_bytes = ReadUInt();
+
+    if( next_bytes == 0xB3EDF05D || next_bytes == 0x5DF0EDB3
+        || next_bytes == 0xD68E799D || next_bytes == 0x9D798ED6 )
+    {
+        local byte is_compressed = false;
+        byte data[block_size];
+    }
+    else
+    {
+        //LittleEndian();
+        //ushort compression_indicator <format=hex>;
+        //local ushort compression_type = compression_indicator & 0x7F;
+        byte unk : 1;
+        byte compression_type : 7;
+        uint32 unk : 7;
+        uint32 size_in_cas : 17;
+
+        if( compression_type > 0 )
+        {
+            local byte is_compressed = true;
+        }
+        else
+        {
+            local byte is_compressed = false;
+        }
+
+        //BigEndian();
+        //ushort compressed_size;
+
+        //if( compressed_size == 0 )
+        //{
+          //  byte data[size];
+        //}
+        //else
+        //{
+          //  byte data[compressed_size];
+        //}
+
+        byte data[size_in_cas];
+    }
+};
+
+struct CAS_CHUNK {
+    CAS_BLOCK block;
+
+    while( block.block_size == 0x10000 )
+    {
+        CAS_BLOCK block;
+    }
+};
+
+while( !FEof() )
+{
+    CAS_CHUNK chunk;
+}
