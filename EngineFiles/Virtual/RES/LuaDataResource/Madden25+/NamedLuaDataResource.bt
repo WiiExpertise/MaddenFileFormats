@@ -1,0 +1,45 @@
+//------------------------------------------------
+//--- 010 Editor v14.0 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+local uint META_SIZE = 0x10;
+
+struct RES_HEADER {
+    uint relocTableOffset;
+    uint relocTableLength;
+    byte padding[8];
+};
+
+struct LUA_HEADER {
+    uint luaDataLength;
+    uint luaStartOffset;
+    byte padding[4];
+    uint luaNameLength;
+    uint luaNameOffset;
+    byte padding2[12];
+};
+
+struct LUA_DATA_RESOURCE {
+  RES_HEADER resHeader <bgcolor=cWhite>;
+  LUA_HEADER header <bgcolor=cRed>;
+  
+  FSeek(META_SIZE + header.luaNameOffset);
+  char luaName[header.luaNameLength] <bgcolor=cAqua>;
+  
+  FSeek(META_SIZE + header.luaStartOffset);
+  char luaData[header.luaDataLength] <bgcolor=cGreen>;
+  
+  FSeek(META_SIZE + resHeader.relocTableOffset);
+  uint relocPointers[resHeader.relocTableLength / 4] <bgcolor=cBlue>;
+};
+
+
+LUA_DATA_RESOURCE lua_resource;
