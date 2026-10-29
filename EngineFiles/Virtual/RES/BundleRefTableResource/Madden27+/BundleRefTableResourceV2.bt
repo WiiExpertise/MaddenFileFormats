@@ -1,0 +1,328 @@
+//------------------------------------------------------------
+// BundleRefTableResourceV2.bt
+// Frostbite BundleRefTableResourceV2
+// Handles 16-byte RES meta
+//------------------------------------------------------------
+
+LittleEndian();
+
+const uint RES_META_SIZE = 0x10;
+
+
+//------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------
+
+typedef struct
+{
+    uint RelocOffset;
+    uint RelocSize;
+    uchar Unknown[8];
+} ResMeta;
+
+typedef struct
+{
+    ushort A;
+    ushort B;
+    ushort C;
+    ushort D;
+    uchar E[8];
+} GUID;
+
+
+//------------------------------------------------------------
+// Convert resource-relative offset → file offset
+//------------------------------------------------------------
+uint64 ResourceToFile(uint64 offset)
+{
+    return offset + RES_META_SIZE;
+}
+
+
+//------------------------------------------------------------
+// String Reference
+//------------------------------------------------------------
+typedef struct
+{
+    uint Raw;
+
+    local int Offset =
+        (Raw == 0xFFFFFFFF)
+        ? -1
+        : (Raw & 0x7FFFFF);
+
+    // bit 23
+    local int Identifier =
+        (Raw == 0xFFFFFFFF)
+        ? -1
+        : ((Raw >> 23) & 1);
+
+    local int Length =
+        (Raw == 0xFFFFFFFF)
+        ? -1
+        : (Raw >> 24);
+
+} StringReference;
+
+
+//------------------------------------------------------------
+// Safe fixed-length read
+//------------------------------------------------------------
+string ReadFixedString(uint64 offset, uint len)
+{
+    local int old = FTell();
+
+    if (offset >= FileSize())
+        return "";
+
+    FSeek(offset);
+
+    string s;
+
+    if (len > 0)
+        ReadString(s, len);
+
+    FSeek(old);
+
+    return s;
+}
+
+
+//------------------------------------------------------------
+// Null-terminated string
+//------------------------------------------------------------
+string ReadCString(uint64 offset)
+{
+    local int old = FTell();
+
+    if (offset >= FileSize())
+        return "";
+
+    FSeek(offset);
+
+    string s;
+    ReadString(s);
+
+    FSeek(old);
+
+    return s;
+}
+
+
+//------------------------------------------------------------
+// Recursive decode
+//------------------------------------------------------------
+string DecodeStringRef(
+    StringReference ref,
+    uint64 tableBase
+)
+{
+    if (ref.Offset < 0)
+        return "";
+
+    local int old = FTell();
+
+    local uint64 pos =
+        ResourceToFile(
+            tableBase +
+            ref.Offset
+        );
+
+    if (pos >= FileSize())
+        return "";
+
+    FSeek(pos);
+
+    StringReference baseRef;
+
+    string fragment = "";
+
+    if (ref.Identifier == 0)
+    {
+        uint extra;
+
+        if (FTell() + 4 <= FileSize())
+        {
+            ReadUInt(extra);
+
+            if (ref.Length > 0)
+            {
+                fragment =
+                    ReadFixedString(
+                        ResourceToFile(
+                            tableBase +
+                            extra
+                        ),
+                        ref.Length
+                    );
+            }
+        }
+    }
+    else
+    {
+        if (ref.Length > 0)
+        {
+            fragment =
+                ReadFixedString(
+                    FTell(),
+                    ref.Length
+                );
+        }
+    }
+
+    string result = fragment;
+
+    if (baseRef.Offset >= 0)
+    {
+        result =
+            DecodeStringRef(
+                baseRef,
+                tableBase
+            )
+            +
+            fragment;
+    }
+
+    FSeek(old);
+
+    return result;
+}
+
+
+//------------------------------------------------------------
+// Bundle Ref
+//------------------------------------------------------------
+typedef struct
+{
+    StringReference PathRef;
+
+    int ParentIndex;
+
+    local string Path =
+        DecodeStringRef(
+            PathRef,
+            StringTablePtr
+        );
+
+} BundleRef;
+
+
+//------------------------------------------------------------
+// Asset Lookup
+//------------------------------------------------------------
+typedef struct
+{
+    uint64 Hash;
+
+    uint BundleRefIndex;
+
+    StringReference PathRef;
+
+    local string Path =
+        DecodeStringRef(
+            PathRef,
+            StringTablePtr
+        );
+
+} AssetLookup;
+
+
+//------------------------------------------------------------
+// RES META
+//------------------------------------------------------------
+
+ResMeta Meta;
+
+
+//------------------------------------------------------------
+// RESOURCE BODY
+//------------------------------------------------------------
+
+uint64 NamePtr;
+
+uint64 AssetLookupPtr;
+
+uint64 StringTablePtr;
+
+uint64 BundleRefPtr;
+
+uint64 EndHeaderPtr;
+
+GUID InstanceGuid;
+
+uchar Reserved[16];
+
+uint AssetLookupCount;
+
+uint BundleRefCount;
+
+uint Zero0;
+
+uint UnknownHash;
+
+uint Zero1;
+
+uint One;
+
+
+//------------------------------------------------------------
+// Resource Name
+//------------------------------------------------------------
+
+local string ResourceName =
+    ReadCString(
+        ResourceToFile(
+            NamePtr
+        )
+    );
+
+
+//------------------------------------------------------------
+// BundleRefs
+//------------------------------------------------------------
+
+FSeek(
+    ResourceToFile(
+        BundleRefPtr
+    )
+);
+
+BundleRef BundleRefs[
+    BundleRefCount
+];
+
+
+//------------------------------------------------------------
+// Asset Lookups
+//------------------------------------------------------------
+
+FSeek(
+    ResourceToFile(
+        AssetLookupPtr
+    )
+);
+
+AssetLookup AssetLookups[
+    AssetLookupCount
+];
+
+
+//------------------------------------------------------------
+// Reloc Table
+//------------------------------------------------------------
+
+if (
+    Meta.RelocOffset != 0 &&
+    Meta.RelocSize > 0
+)
+{
+    FSeek(
+        ResourceToFile(
+            Meta.RelocOffset
+        )
+    );
+
+    uint RelocEntries[
+        Meta.RelocSize / 4
+    ];
+}
