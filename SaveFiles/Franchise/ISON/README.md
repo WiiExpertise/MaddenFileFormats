@@ -4,6 +4,7 @@ Interned String Object Notation, or ISON, is a binary JSON-like format that also
 ## Games using this format
 - Madden NFL 25
 - Madden NFL 26
+- Madden NFL 27
 
 ## Format
 ### Constants
